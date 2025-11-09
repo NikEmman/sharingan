@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Kagebunshin",
+  "version": "1.0",
+  "description": "Adds a browser action icon to the toolbar. Click the button to copy current page's html and export it to a file",
+  "homepage_url": "https://github.com/NikEmman/kagebunshin",
+
+  "icons": {
+    "48": "icons/kagebunshin-48.png"
+  },
+
+  "action": {
+    "default_icon": {
+      "32": "icons/kagebunshin-32.png"
+    },
+    "default_title": "KageBunshin",
+    "default_popup": "popup/popup.html"
+  },
+
+  "permissions": ["activeTab", "downloads", "scripting"],
+
+  "host_permissions": ["<all_urls>"]
+}
