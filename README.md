@@ -1,4 +1,4 @@
-# kagebunshin
+# sharingan
 
 A browser extension to copy the current tab's HTML and save it to a file.
 
@@ -39,6 +39,10 @@ A browser extension to copy the current tab's HTML and save it to a file.
 - **Button not working?** Make sure the tab you're trying to copy is fully loaded.
 - **File not downloading?** Check your browser's download permissions or try reloading the extension.
 - **Firefox users:** Remember that the extension is temporary and will disappear after restarting the browser.
+
+---
+
+> 💡 Pro Tip: As you are clicking the button to perform the copy, yell **Sharingan** for extra effect!
 
 ---
 

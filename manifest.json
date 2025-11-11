@@ -1,19 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "Kagebunshin",
+  "name": "Sharingan",
   "version": "1.0",
   "description": "Adds a browser action icon to the toolbar. Click the button to copy current page's html and export it to a file",
-  "homepage_url": "https://github.com/NikEmman/kagebunshin",
+  "homepage_url": "https://github.com/NikEmman/sharingan",
 
   "icons": {
-    "48": "icons/kagebunshin-48.png"
+    "48": "icons/sharingan-48.png"
   },
 
   "action": {
     "default_icon": {
-      "32": "icons/kagebunshin-32.png"
+      "32": "icons/sharingan-32.png"
     },
-    "default_title": "KageBunshin",
+    "default_title": "sharingan",
     "default_popup": "popup/popup.html"
   },
 
