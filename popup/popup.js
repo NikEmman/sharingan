@@ -38,7 +38,11 @@ document.getElementById("copy").addEventListener("click", async () => {
       URL.revokeObjectURL(url);
     }, 100);
   } catch (err) {
-    alert("Error: " + err.message);
+    chrome.runtime.sendMessage({
+      type: "show-notification",
+      text: err.message,
+    });
+
     console.error("Kagebunshin error:", err);
   }
 });

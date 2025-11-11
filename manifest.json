@@ -8,6 +8,9 @@
   "icons": {
     "48": "icons/sharingan-48.png"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
 
   "action": {
     "default_icon": {
@@ -17,7 +20,7 @@
     "default_popup": "popup/popup.html"
   },
 
-  "permissions": ["activeTab", "downloads", "scripting"],
+  "permissions": ["activeTab", "downloads", "scripting", "notifications"],
 
   "host_permissions": ["<all_urls>"]
 }
