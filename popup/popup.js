@@ -31,9 +31,10 @@ document.getElementById("copy").addEventListener("click", async () => {
       URL.revokeObjectURL(url);
     }, 100);
   } catch (err) {
+    // Show non-blocking notification instead of alert
     chrome.notifications.create({
       type: "basic",
-      iconUrl: "icons/sharingan-48.png",
+      iconUrl: chrome.runtime.getURL("icons/sharingan-48.png"), // Absolute extension URL
       title: "Sharingan Error",
       message:
         err.message || "An unknown error occurred while exporting the page.",
