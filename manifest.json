@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Sharingan",
-  "version": "1.0",
-  "description": "Adds a browser action icon to the toolbar. Click the button to copy current page's html and export it to a file",
+  "version": "2.0",
+  "description": "Save the current tab as numbered steps: the page and every frame, with typed and selected values kept.",
   "homepage_url": "https://github.com/NikEmman/sharingan",
 
   "icons": {
@@ -17,7 +17,14 @@
     "default_popup": "popup/popup.html"
   },
 
-  "permissions": ["activeTab", "downloads", "scripting", "notifications"],
+  "permissions": ["activeTab", "downloads", "scripting", "notifications", "storage"],
 
-  "host_permissions": ["<all_urls>"]
+  "host_permissions": ["<all_urls>"],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "sharingan@nikemman",
+      "strict_min_version": "109.0"
+    }
+  }
 }

@@ -1,25 +1,87 @@
 * {
   padding: 0;
   margin: 0;
+  box-sizing: border-box;
 }
-html,
+
 body {
-  width: 120px;
+  width: 280px;
+  padding: 10px;
+  font: 13px system-ui, sans-serif;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+label {
+  font-size: 11px;
+  color: #555;
+  margin-top: 4px;
+}
+
+input {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  font: inherit;
+}
+
+.check {
+  display: flex;
   align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #333;
+}
+
+.check input {
+  width: auto;
+}
+
+#step {
+  margin-top: 6px;
+  color: #555;
 }
 
 button {
   border: none;
-  width: 80%;
-  margin: 3% auto;
-  padding: 4px;
+  width: 100%;
+  padding: 6px;
   text-align: center;
   cursor: pointer;
   background-color: #f2ebe5;
+  font: inherit;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background-color: #e20d0d;
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+#copy {
+  font-weight: 600;
+  padding: 8px;
+}
+
+#status {
+  min-height: 1.4em;
+  font-size: 12px;
+}
+
+#status.ok    { color: #15803d; }
+#status.error { color: #e20d0d; }
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+.small {
+  font-size: 11px;
+  padding: 4px;
 }

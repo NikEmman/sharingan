@@ -1,6 +1,8 @@
 # sharingan
 
-A browser extension to copy the current tab's HTML and save it to a file.
+A browser extension that saves the current tab as numbered **steps**: the page
+and every frame inside it, with what you typed or picked kept in the HTML.
+Useful for recording a multi-step flow in a web app to work on it offline.
 
 ## 📦 Installation Instructions (Developer Mode)
 
@@ -28,15 +30,41 @@ A browser extension to copy the current tab's HTML and save it to a file.
 1. Click the **Extensions** icon in your browser toolbar
 2. Pin **sharingan** for quick access
 3. Click the **sharingan** icon to open the popup
-4. Click the button to **copy and download** the current tab's HTML
+4. Optionally set the **session folder** and a **note** for this step
+5. Click **Sharingan!** after each step of the flow you are recording
 
-> 📁 The HTML file will be saved to your default downloads folder.
+Each click saves one step into `Downloads/sharingan/<session>/`:
+
+```
+01-<page title>.html                  the page
+02-<page title>.html
+02-frame-pf_-pfo-folder-lov.html      a frame that was open (popup, list, document…)
+steps.txt                             "Download steps.txt": every step, its URL, note and files
+```
+
+- **Frames are saved too**, each as its own file (named after the frame's name
+  and address). Empty frames (`about:blank`) are skipped. In the page file each
+  `<iframe>` gets `data-sharingan-src` with the address it actually showed.
+- **Form state is kept**: typed text, checkboxes, selected options and
+  textarea text are written into the HTML. "Save Page As" loses these.
+  Password fields are never saved.
+- **Stylesheets are embedded** (option, on by default): each `<link>` and
+  `<style>` becomes a `<style>` with the rules the page loaded, `@import`s
+  expanded and `url(...)` made absolute, so the file displays without the
+  site. Sheets from other sites are fetched by the extension; if that fails
+  the `<link>` is kept and the popup says so. Images are not embedded.
+- Each file starts with a comment: step number, time, URL, frame name and note.
+- The step counter and log survive closing the popup. **New session** starts
+  again from step 01 in a new folder.
+
+> 📁 Files go to your default downloads folder, without a save dialog.
 
 ---
 
 ## 🛠️ Troubleshooting
 
 - **Button not working?** Make sure the tab you're trying to copy is fully loaded.
+- **Firefox: nothing is captured?** Allow the add-on to access websites (it asks on the first click, or about:addons → Sharingan → Permissions).
 - **File not downloading?** Check your browser's download permissions or try reloading the extension.
 - **Firefox users:** Remember that the extension is temporary and will disappear after restarting the browser.
 
