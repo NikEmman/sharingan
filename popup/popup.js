@@ -96,40 +96,50 @@ function capturePage(embedCss) {
       return absUrls(r.cssText, base);
     }).join("\n");
   };
-  const styleTag = (css, attrs) =>
-    `<style${attrs}>\n${css.replace(/<\/style/gi, "<\\/style")}\n</style>`;
+  // Built with createElement, not innerHTML: pages with Trusted Types
+  // reject innerHTML strings, even from extension scripts.
+  const styleEl = (css, attrs) => {
+    const el = document.createElement("style");
+    for (const [k, v] of Object.entries(attrs)) if (v) el.setAttribute(k, v);
+    if (css != null) el.textContent = `\n${css.replace(/<\/style/gi, "<\\/style")}\n`;
+    return el;
+  };
 
-  // Stylesheets that could not be read here; the popup downloads them.
-  const pendingCss = [];
+  // Embedding CSS must never break a capture: a sheet that fails is left as
+  // its original <link>/<style>, and the reason is reported to the popup.
+  const pendingCss = [], cssErrors = [];
+  const cssError = (where, e) => cssErrors.push(`${where}: ${e?.message || e}`);
   if (embedCss) {
-    const liveNodes  = Array.from(live.querySelectorAll('link[rel~="stylesheet" i], style'));
-    const cloneNodes = Array.from(clone.querySelectorAll('link[rel~="stylesheet" i], style'));
-    for (const sheet of Array.from(document.styleSheets)) {
-      const i = liveNodes.indexOf(sheet.ownerNode);
-      const target = cloneNodes[i];
-      if (i < 0 || !target) continue;
-      const media = sheet.media?.mediaText ? ` media="${sheet.media.mediaText.replace(/"/g, "&quot;")}"` : "";
-      const from  = sheet.href ? ` data-sharingan-from="${sheet.href.replace(/"/g, "&quot;")}"` : "";
-      let html;
-      try {
-        html = styleTag(sheetText(sheet), media + from);
-      } catch (_) {
-        const n = pendingCss.length;
-        pendingCss.push({ n, href: sheet.href, media });
-        html = `<style data-sharingan-pending="${n}"></style>`;
+    try {
+      const liveNodes  = Array.from(live.querySelectorAll('link[rel~="stylesheet" i], style'));
+      const cloneNodes = Array.from(clone.querySelectorAll('link[rel~="stylesheet" i], style'));
+      for (const sheet of Array.from(document.styleSheets)) {
+        try {
+          const i = liveNodes.indexOf(sheet.ownerNode);
+          const target = cloneNodes[i];
+          if (i < 0 || !target) continue;
+          const media = sheet.media?.mediaText || "";
+          let el;
+          try {
+            el = styleEl(sheetText(sheet), { media, "data-sharingan-from": sheet.href });
+          } catch (_) {
+            if (!sheet.href) throw new Error("unreadable inline stylesheet");
+            const n = pendingCss.length;
+            pendingCss.push({ n, href: sheet.href, media: media ? ` media="${media.replace(/"/g, "&quot;")}"` : "" });
+            el = styleEl(null, { "data-sharingan-pending": String(n) });
+          }
+          target.replaceWith(el);
+        } catch (e) { cssError(sheet.href || "inline <style>", e); }
       }
-      const holder = document.createElement("template");
-      holder.innerHTML = html;
-      target.replaceWith(holder.content.firstChild);
-    }
-    // Stylesheets added from script (document.adoptedStyleSheets).
-    for (const sheet of document.adoptedStyleSheets || []) {
-      try {
-        const holder = document.createElement("template");
-        holder.innerHTML = styleTag(sheetText(sheet), ' data-sharingan-from="adopted"');
-        (clone.querySelector("head") || clone).appendChild(holder.content.firstChild);
-      } catch (_) {}
-    }
+      // Stylesheets added from script (document.adoptedStyleSheets).
+      let adopted = [];
+      try { adopted = Array.from(document.adoptedStyleSheets || []); } catch (e) { cssError("adoptedStyleSheets", e); }
+      for (const sheet of adopted) {
+        try {
+          (clone.querySelector("head") || clone).appendChild(styleEl(sheetText(sheet), { "data-sharingan-from": "adopted" }));
+        } catch (e) { cssError("adopted sheet", e); }
+      }
+    } catch (e) { cssError("stylesheets", e); }
   }
 
   const pairs = sel => {
@@ -167,6 +177,7 @@ function capturePage(embedCss) {
     name:   window.name || "",
     isTop:  window === window.top,
     pendingCss,
+    cssErrors,
     empty:  !text && !document.querySelector("img, input, select, textarea, table"),
   };
 }
@@ -241,9 +252,14 @@ copyBtn.addEventListener("click", async () => {
     });
     const pages = results.map(r => r?.result && { ...r.result, frameId: r.frameId }).filter(Boolean);
     const top   = pages.find(p => p.isTop || p.frameId === 0);
-    if (!top?.html) throw new Error("Could not read the page");
+    if (!top?.html) {
+      // Say why, when the browser tells us (Firefox reports the frame's error).
+      const why = results.find(r => r?.frameId === 0)?.error || results.find(r => r?.error)?.error;
+      throw new Error("Could not read the page" + (why ? `: ${why.message || why}` : ""));
+    }
+    for (const p of pages) for (const e of p.cssErrors || []) console.warn("Sharingan CSS:", p.url, e);
     const frames = pages.filter(p => p !== top && !p.empty);
-    let cssFailed = 0;
+    let cssFailed = [top, ...frames].reduce((k, p) => k + (p.cssErrors?.length || 0), 0);
     for (const p of [top, ...frames]) {
       const r = await fillPendingCss(p);
       p.html = r.html;
