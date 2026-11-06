@@ -43,8 +43,8 @@ steps.txt                             "Download steps.txt": every step, its URL,
 ```
 
 - **Frames are saved too**, each as its own file (named after the frame's name
-  and address). Empty frames (`about:blank`) are skipped. In the page file each
-  `<iframe>` gets `data-sharingan-src` with the address it actually showed.
+  and address). Empty frames (`about:blank`) and "Loading…" placeholders
+  are skipped. In the page file each `<iframe>` gets `data-sharingan-src` with the address it actually showed.
 - **Form state is kept**: typed text, checkboxes, selected options and
   textarea text are written into the HTML. "Save Page As" loses these.
   Password fields are never saved.
@@ -54,8 +54,9 @@ steps.txt                             "Download steps.txt": every step, its URL,
   site. Sheets from other sites are fetched by the extension; if that fails
   the `<link>` is kept and the popup says so. Images are not embedded.
 - Each file starts with a comment: step number, time, URL, frame name and note.
-- The step counter and log survive closing the popup. **New session** starts
-  again from step 01 in a new folder.
+- The step counter and log survive closing the popup, even if it closes
+  mid-capture (the step number is claimed before any file is saved).
+  **New session** starts again from step 01 in a new folder.
 
 > 📁 Files go to your default downloads folder, without a save dialog.
 

@@ -169,6 +169,7 @@ function capturePage(embedCss) {
     ? `<!DOCTYPE ${dt.name}${dt.publicId ? ` PUBLIC "${dt.publicId}"` : ""}${dt.systemId ? ` "${dt.systemId}"` : ""}>\n`
     : "";
   const text = (document.body?.innerText || "").trim();
+  const bare = !document.querySelector("img, input, select, textarea, table, a");
 
   return {
     html:   doctype + clone.outerHTML,
@@ -178,7 +179,8 @@ function capturePage(embedCss) {
     isTop:  window === window.top,
     pendingCss,
     cssErrors,
-    empty:  !text && !document.querySelector("img, input, select, textarea, table"),
+    // Nothing to keep: a blank frame, or a "Loading..." placeholder.
+    empty:  bare && (!text || /^loading\W*$/i.test(text)),
   };
 }
 
@@ -272,29 +274,31 @@ copyBtn.addEventListener("click", async () => {
     const note   = noteInput.value.trim();
     const header = p =>
       `<!-- sharingan step ${n} | ${new Date().toISOString()} | ${p.url}` +
-      (p.name ? ` | frame name="${p.name}"` : "") +
+      (p !== top && p.name ? ` | frame name="${p.name}"` : "") +
       (note ? ` | note: ${note.replace(/--/g, "‐‐")}` : "") + " -->\n";
 
-    const files = [];
-    const topFile = `${n}-${safeName(top.title)}.html`;
-    await download(header(top) + top.html, `${dir}/${topFile}`);
-    files.push(topFile);
-
+    const out = [{ name: `${n}-${safeName(top.title)}.html`, text: header(top) + top.html }];
     const used = new Set();
     for (const f of frames) {
       const base = `${n}-frame-${safeName([f.name, urlPart(f.url)].filter(Boolean).join("-"), 60)}`;
       let name = `${base}.html`;
       for (let k = 2; used.has(name); k++) name = `${base}-${k}.html`;
       used.add(name);
-      await download(header(f) + f.html, `${dir}/${name}`);
-      files.push(name);
+      out.push({ name, text: header(f) + f.html });
     }
+    const files = out.map(o => o.name);
 
+    // The first download can open Firefox's downloads panel, which closes this
+    // popup and stops its script. So: claim the step number first, then start
+    // every download at once (the browser finishes them without the popup).
     state.log.push({ step: state.step, time: new Date().toISOString(), title: top.title, url: top.url, files, note });
     state.step++;
     await save();
     noteInput.value = "";
     render();
+    const done = await Promise.allSettled(out.map(o => download(o.text, `${dir}/${o.name}`)));
+    const failed = done.filter(r => r.status === "rejected");
+    if (failed.length) throw new Error(`Step ${n}: ${failed.length} of ${out.length} files failed (${failed[0].reason?.message || failed[0].reason})`);
     setStatus(`Saved step ${n}: ${files.length === 1 ? "1 file" : `${files.length} files`}` +
               (frames.length ? ` (page + ${frames.length} frame${frames.length > 1 ? "s" : ""})` : "") +
               (cssFailed ? `; ${cssFailed} stylesheet${cssFailed > 1 ? "s" : ""} could not be embedded (kept as links)` : ""),
